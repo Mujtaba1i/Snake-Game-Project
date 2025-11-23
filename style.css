@@ -1,0 +1,52 @@
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background: #222;
+    position: relative;
+    flex-direction: column;
+    color: green;
+}
+
+#grid {
+    display: grid;
+    grid-template-columns: repeat(40, 1fr);
+    width: 1200px;
+    height: 800px;
+    gap: 1px;
+    background: #1d1d1d;
+    filter: blur(5px);
+}
+
+#grid div {
+    background: #767676;
+}
+
+#startButton {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+
+    font-size: 48px;
+    font-weight: bold;
+    padding: 30px 80px;
+
+    background: #ff0000;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+
+    box-shadow: 0 8px 20px rgba(255, 0, 0, 0.5);
+    transition: all 0.3s;
+}
+
+#startBtn:hover {
+    background: #cc0000;
+    transform: translate(-50%, -50%) scale(1.05);
+}
