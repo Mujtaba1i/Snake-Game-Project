@@ -7,6 +7,9 @@ const gridSize = 40
 const section = document.querySelector('#grid')
 const startButton = document.querySelector('#startButton')
 const healthEle = document.querySelector('#health')
+const highScoreEle = document.querySelector('#highScore')
+
+
 
 /*--------------------------------- Setup -----------------------------------*/
 
@@ -78,6 +81,7 @@ let thereisobstacle = false
 let obstacleLocation = null
 let health = 3
 let bodyOrientation = []
+let highScore = 0
 
 /*-------------------------------- Functions --------------------------------*/
 
@@ -124,6 +128,7 @@ function snakeSpawn() {
             divs[pos].style.backgroundRepeat = 'no-repeat'
         }
     })
+
 }
 
 // function to set the game speed
@@ -285,6 +290,10 @@ function checkCollision() {
         apple = false
         snakeLength++
         score++
+        if (score > highScore) {
+            highScore = score
+            highScoreEle.textContent = "High Score: " + highScore
+        }
         startSnakeMovement()
         document.querySelector('#score').textContent = "Score: " + score
     }
@@ -386,12 +395,14 @@ function startGame(){
     for (let i = 0; i < gameSquares.length; i++) {
         if (!wallArray.includes(i)) {
             gameSquares[i] = ""
-            divs[i].textContent = ""
+            // divs[i].textContent = ""
             divs[i].style.backgroundImage = ""
         }
     }
 
     //start the game
+    apple = false
+    setTimeout(() => isThereApple(), 0)
     snakeSpawn()
     startSnakeMovement()
 }
