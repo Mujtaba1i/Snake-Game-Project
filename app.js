@@ -6,6 +6,9 @@ const gridSize = 40
 // DOM elements
 const section = document.querySelector('#grid')
 const startButton = document.querySelector('#startButton')
+const healthEle = document.querySelector('#health')
+
+/*--------------------------------- Setup -----------------------------------*/
 
 // creating grid
 for (let i = 0; i < gridSize * gridSize; i++) {
@@ -22,6 +25,7 @@ const snakeHead = "🐸"
 const snakeTail = "🐍"
 const appleEmoji = "🍎"
 const wallEmoji = "🧱"
+const obstacleEmoji = "🪨"
 
 // walls fill
 const wallArray = []
@@ -49,6 +53,9 @@ let snakeBody = []
 let ateApple = false
 let gameInterval = null
 let score = 0
+let thereisobstacle = false
+let obstacleLocation = null
+let health = 3
 
 /*-------------------------------- Functions --------------------------------*/
 
@@ -78,8 +85,12 @@ function snakeSpawn() {
 }
 
 // function to set the game speed
+// gradually increasing the speed depending on the score 
 function startSnakeMovement() {
-    gameInterval = setInterval(moveSnake, 75)
+    if (score<10) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 125)}
+    else if (score<20) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 100)}
+    else if (score<30) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 75)}
+    else if (score<40) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 50)}
 }
 
 
@@ -91,7 +102,6 @@ function moveSnake(){
     else if (snakeAimingDirection === 'Left') moveLeft()
     else if (snakeAimingDirection === 'Right') moveRight()
     
-    isThereApple()
 }
 
 // moving the snake
@@ -128,6 +138,8 @@ function moveSnakeGeneric(movement) {
     divs[head].textContent = snakeTail
 
     checkCollision()
+    isThereApple()
+    isThereObstacle()
 }
 
 function checkCollision() {
@@ -136,11 +148,22 @@ function checkCollision() {
     // if with body part
     if (snakeBody.slice(1).includes(head)) gameOVER()
 
+    if (head === obstacleLocation){
+        //hit a rock
+        health--
+        healthEle.textContent=("Health: " + ("❤️".repeat(health)))
+        thereisobstacle = false
+        if (health===0){
+            gameOVER()
+        } 
+    }
+
     // if collision with apple
     if (ateApple) {
         apple = false
         snakeLength++
         score++
+        startSnakeMovement()
         document.querySelector('#score').textContent = "Score: " + score
     }
 }
@@ -167,6 +190,7 @@ function gameOVER(){
     apple = false
     snakeBody = []
     ateApple = false
+    thereisobstacle = false
 
     // change text to Restart
     startButton.textContent = 'Restart'
@@ -196,6 +220,38 @@ function isThereApple() {
     }
 }
 
+function isThereObstacle(){
+    // at a random time spawn an obstacle
+    if(!thereisobstacle && Math.random() < 0.4){
+        
+        // finds all empty spots
+        let emptySpots = []
+        for (let i = 0; i < gameSquares.length; i++) {
+            if (gameSquares[i] === "" && !wallArray.includes(i)){
+                emptySpots.push(i)
+            }
+        }
+        
+        // if there are no empty spots do nothing
+        if (emptySpots.length === 0) return
+
+        // picks a random spot where it is empty
+        let randomIndex = emptySpots[Math.floor(Math.random() * emptySpots.length)]
+        
+        // place obstacle
+        thereisobstacle = true
+        gameSquares[randomIndex] = obstacleEmoji
+        divs[randomIndex].textContent = obstacleEmoji
+        obstacleLocation = randomIndex
+    }
+
+    if(thereisobstacle && Math.random() < 0.008){
+        // remove the obstacle
+        thereisobstacle = false
+        gameSquares[obstacleLocation] = ""
+        divs[obstacleLocation].textContent = ""
+    }
+}
 
 function startGame(){
     // showing the button
@@ -205,6 +261,8 @@ function startGame(){
     // resets the variables
     score = 0
     document.querySelector('#score').textContent = "Score: " +score
+    health=3
+    healthEle.textContent=("Health: " + ("❤️".repeat(health)))
 
     //start the game
     snakeSpawn()
