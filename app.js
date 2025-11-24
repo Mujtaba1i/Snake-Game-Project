@@ -1,20 +1,42 @@
 /*-------------------------------- Constants --------------------------------*/
 
 // grid size 
-const gridSize = 40
+const easyGridSize = 40
 
 // DOM elements
 const section = document.querySelector('#grid')
 const startButton = document.querySelector('#startButton')
 const healthEle = document.querySelector('#health')
 const highScoreEle = document.querySelector('#highScore')
+const radioEasyEle = document.querySelector('#difficulty-easy')
+const radioHardEle = document.querySelector('#difficulty-hard')
+const radioInsaseEle = document.querySelector('#difficulty-insane')
+const radioContainer = document.querySelectorAll('.radioLabel')
 
+/*--------------------------------- Code -----------------------------------*/
+
+
+/*
+if (radioEasyEle.checked){
+    console.log("easy Selected")
+}
+
+if (radioHardEle.checked){
+    console.log("hard Selected")
+}
+
+if (radioInsaseEle.checked){
+    console.log("insane Selected")
+}*/
+
+// if reload happens
+highScoreEle.textContent = "High Score: " + localStorage.getItem('highScore')
 
 
 /*--------------------------------- Setup -----------------------------------*/
 
 // creating grid
-for (let i = 0; i < gridSize * gridSize; i++) {
+for (let i = 0; i < easyGridSize * easyGridSize; i++) {
     const div = document.createElement('div')
     div.className = 'grid-cell'
     section.appendChild(div)
@@ -22,7 +44,7 @@ for (let i = 0; i < gridSize * gridSize; i++) {
 
 // filling
 const divs = section.querySelectorAll('div')
-const gameSquares = new Array(gridSize * gridSize).fill('')
+const gameSquares = new Array(easyGridSize * easyGridSize).fill('')
 
 // head
 const snakeHeadup = './assets/Head/up.png'
@@ -53,16 +75,16 @@ const obstacleEmoji = "./assets/obstacle/blade.png"
 
 // walls fill
 const wallArray = []
-for (let i = 0; i < gridSize; i++) {
+for (let i = 0; i < easyGridSize; i++) {
     wallArray.push(i) // top
-    wallArray.push((gridSize * gridSize) - gridSize + i) // bottom
-    wallArray.push(i * gridSize) // left
-    wallArray.push(i * gridSize + gridSize - 1) // right
+    wallArray.push((easyGridSize * easyGridSize) - easyGridSize + i) // bottom
+    wallArray.push(i * easyGridSize) // left
+    wallArray.push(i * easyGridSize + easyGridSize - 1) // right
 
     divs[i].textContent = wallEmoji
-    divs[(gridSize * gridSize) - gridSize + i].textContent = wallEmoji
-    divs[i * gridSize].textContent = wallEmoji
-    divs[i * gridSize + gridSize - 1].textContent = wallEmoji
+    divs[(easyGridSize * easyGridSize) - easyGridSize + i].textContent = wallEmoji
+    divs[i * easyGridSize].textContent = wallEmoji
+    divs[i * easyGridSize + easyGridSize - 1].textContent = wallEmoji
 }
 
 
@@ -87,22 +109,22 @@ let highScore = 0
 
 function snakeSpawn() {
     // delcare where its safe to spawn the snake
-    const safeZoneStart = gridSize * snakeLength + snakeLength
-    const safeZoneEnd = gridSize * (gridSize - snakeLength) - snakeLength
+    const safeZoneStart = easyGridSize * snakeLength + snakeLength
+    const safeZoneEnd = easyGridSize * (easyGridSize - snakeLength) - snakeLength
 
     // checks if it is safe to spawn
     let headPosition
-    do headPosition = Math.floor(Math.random() * (gridSize * gridSize))
+    do headPosition = Math.floor(Math.random() * (easyGridSize * easyGridSize))
         while (
         wallArray.includes(headPosition) ||
         headPosition < safeZoneStart ||
         headPosition > safeZoneEnd ||
-        headPosition % gridSize < snakeLength ||
-        headPosition % gridSize > gridSize - (snakeLength+1)
+        headPosition % easyGridSize < snakeLength ||
+        headPosition % easyGridSize > easyGridSize - (snakeLength+1)
     )
 
     // spawn the snake with correct head direction
-    snakeBody = [headPosition, headPosition - gridSize, headPosition - gridSize*2]
+    snakeBody = [headPosition, headPosition - easyGridSize, headPosition - easyGridSize*2]
 
     // orientations
     bodyOrientation = ['Down', 'Down', 'Down']
@@ -152,8 +174,8 @@ function moveSnake(){
 }
 
 // moving the snake
-function moveUp()    { moveSnakeGeneric(-gridSize) }
-function moveDown()  { moveSnakeGeneric(gridSize) }
+function moveUp()    { moveSnakeGeneric(-easyGridSize) }
+function moveDown()  { moveSnakeGeneric(easyGridSize) }
 function moveLeft()  { moveSnakeGeneric(-1) }
 function moveRight() { moveSnakeGeneric(1) }
 
@@ -215,8 +237,8 @@ function updateBodySegments() {
             let diff    = before - tail
 
             // if there is a diffrance change the tail
-            if (diff === -gridSize) tailImage = snakeTailUp
-            else if (diff === gridSize) tailImage = snakeTailDown
+            if (diff === -easyGridSize) tailImage = snakeTailUp
+            else if (diff === easyGridSize) tailImage = snakeTailDown
             else if (diff === -1) tailImage = snakeTailLeft
             else if (diff === 1) tailImage = snakeTailRight
 
@@ -291,11 +313,21 @@ function checkCollision() {
         snakeLength++
         score++
         if (score > highScore) {
-            highScore = score
-            highScoreEle.textContent = "High Score: " + highScore
-        }
+            if (localStorage.getItem('highScore') === null) {
+                highScore = score
+                highScoreEle.textContent = "High Score: " + highScore
+                // saves it to local storage
+                localStorage.setItem('highScore', highScore)
+            }
+            else if (score > localStorage.getItem('highScore')) {
+                highScore = score
+                highScoreEle.textContent = "High Score: " + highScore
+                // saves it to local storage
+                localStorage.setItem('highScore', highScore)
+            }
         startSnakeMovement()
         document.querySelector('#score').textContent = "Score: " + score
+        }
     }
 }
 
@@ -306,6 +338,9 @@ function gameOVER(){
     // displays the button
     startButton.style.display = 'block'
     section.style.filter = 'blur(5px)'
+        for (let buttonEl of radioContainer){
+        buttonEl.style.display = 'inline-block'
+    }
     
     // resets the variables
     snakeLength = 3
@@ -383,6 +418,9 @@ function isThereObstacle(){
 function startGame(){
     // showing the button
     startButton.style.display = 'none'
+    for (let buttonEl of radioContainer){
+        buttonEl.style.display = 'none'
+    }
     section.style.filter = 'none'
 
     // resets the variables
@@ -395,14 +433,15 @@ function startGame(){
     for (let i = 0; i < gameSquares.length; i++) {
         if (!wallArray.includes(i)) {
             gameSquares[i] = ""
-            // divs[i].textContent = ""
             divs[i].style.backgroundImage = ""
         }
     }
 
     //start the game
     apple = false
+    thereisobstacle = false
     setTimeout(() => isThereApple(), 0)
+    setTimeout(() => isThereObstacle(), 0)
     snakeSpawn()
     startSnakeMovement()
 }
