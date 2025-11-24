@@ -13,6 +13,7 @@ const healthEle = document.querySelector('#health')
 // creating grid
 for (let i = 0; i < gridSize * gridSize; i++) {
     const div = document.createElement('div')
+    div.className = 'grid-cell'
     section.appendChild(div)
 }
 
@@ -20,12 +21,32 @@ for (let i = 0; i < gridSize * gridSize; i++) {
 const divs = section.querySelectorAll('div')
 const gameSquares = new Array(gridSize * gridSize).fill('')
 
-// style?
-const snakeHead = "🐸"
-const snakeTail = "🐍"
-const appleEmoji = "🍎"
+// head
+const snakeHeadup = './assets/Head/up.png'
+const snakeHeaddown = './assets/Head/down.png'
+const snakeHeadleft = './assets/Head/left.png'
+const snakeHeadright = './assets/Head/right.png'
+
+// body
+const bodyH = './assets/body/horizontal.png'
+const bodyV = './assets/body/vertical.png'
+const bodyBR = './assets/body/90topright.png'
+const bodyBL = './assets/body/90topleft.png'
+const bodyTR = './assets/body/90bottomright.png'
+const bodyTL = './assets/body/90bottomleft.png'
+
+// tail
+const snakeTailDown = './assets/tail/down.png'
+const snakeTailUp = './assets/tail/up.png'
+const snakeTailLeft = './assets/tail/left.png'
+const snakeTailRight = './assets/tail/right.png'
+
+// apple
+const appleEmoji = './assets/apple/apple.png'
+
+// obstacles
 const wallEmoji = "🧱"
-const obstacleEmoji = "🪨"
+const obstacleEmoji = "./assets/obstacle/blade.png"
 
 // walls fill
 const wallArray = []
@@ -56,6 +77,7 @@ let score = 0
 let thereisobstacle = false
 let obstacleLocation = null
 let health = 3
+let bodyOrientation = []
 
 /*-------------------------------- Functions --------------------------------*/
 
@@ -75,12 +97,32 @@ function snakeSpawn() {
         headPosition % gridSize > gridSize - (snakeLength+1)
     )
 
-    // spawn the snake
-    gameSquares[headPosition] = snakeHead
+    // spawn the snake with correct head direction
     snakeBody = [headPosition, headPosition - gridSize, headPosition - gridSize*2]
+
+    // orientations
+    bodyOrientation = ['Down', 'Down', 'Down']
+
+    // SET TO DOWN on spawn
     snakeBody.forEach((pos, i) => {
-        gameSquares[pos] = i === 0 ? snakeHead : snakeTail
-        divs[pos].textContent = gameSquares[pos]
+        if (i === 0) {
+            // Head
+            divs[pos].style.backgroundImage = `url(${snakeHeaddown})`
+            divs[pos].style.backgroundSize = 'contain'
+            divs[pos].style.backgroundRepeat = 'no-repeat'
+        } 
+        else if (i === snakeBody.length - 1) {
+            // Tail
+            divs[pos].style.backgroundImage = `url(${snakeTailDown})`
+            divs[pos].style.backgroundSize = 'contain'
+            divs[pos].style.backgroundRepeat = 'no-repeat'
+        } 
+        else {
+            // Body
+            divs[pos].style.backgroundImage = `url(${bodyV})`
+            divs[pos].style.backgroundSize = 'contain'
+            divs[pos].style.backgroundRepeat = 'no-repeat'
+        }
     })
 }
 
@@ -121,25 +163,105 @@ function moveSnakeGeneric(movement) {
     // checks if snake head on the apple and setting it to true
     ateApple = (gameSquares[newHead] === appleEmoji)
 
+    // Determine correct head image based on direction
+    let snakeHead
+    if (snakeAimingDirection === 'Up') snakeHead = snakeHeadup
+    else if (snakeAimingDirection === 'Down') snakeHead = snakeHeaddown
+    else if (snakeAimingDirection === 'Left') snakeHead = snakeHeadleft
+    else if (snakeAimingDirection === 'Right') snakeHead = snakeHeadright
+
     // moving the head
     snakeBody.unshift(newHead)
+    
+    // Tracking direction
+    bodyOrientation.unshift(snakeAimingDirection) 
     gameSquares[newHead] = snakeHead
-    divs[newHead].textContent = snakeHead
+    divs[newHead].style.backgroundImage = `url(${snakeHead})`
+    divs[newHead].style.backgroundSize = 'contain'
+    divs[newHead].style.backgroundRepeat = 'no-repeat'
 
     // remove the last tail
     if (!ateApple) {
         let oldTail = snakeBody.pop()
+        bodyOrientation.pop()
         gameSquares[oldTail] = ""
-        divs[oldTail].textContent = ""
+        divs[oldTail].style.backgroundImage = ''
     }
 
-    // changes old head to body
-    gameSquares[head] = snakeTail
-    divs[head].textContent = snakeTail
-
+    updateBodySegments()
     checkCollision()
     isThereApple()
     isThereObstacle()
+}
+
+function updateBodySegments() {
+    // updates body
+    for (let i = 1; i < snakeBody.length; i++) {
+        let pos = snakeBody[i]
+        let tailDirection = bodyOrientation[i]
+        let tailImage
+        
+        // tail
+        if (i === snakeBody.length - 1) {
+            
+            // compares the tail position with the body position
+            let tail    = snakeBody[i]
+            let before  = snakeBody[i - 1]
+            let diff    = before - tail
+
+            // if there is a diffrance change the tail
+            if (diff === -gridSize) tailImage = snakeTailUp
+            else if (diff === gridSize) tailImage = snakeTailDown
+            else if (diff === -1) tailImage = snakeTailLeft
+            else if (diff === 1) tailImage = snakeTailRight
+
+            // draw the tail
+            gameSquares[pos] = tailImage
+            divs[pos].style.backgroundImage = `url(${tailImage})`
+            divs[pos].style.backgroundSize = 'contain'
+            divs[pos].style.backgroundRepeat = 'no-repeat'
+        }
+
+        // body
+        else {
+
+            // checks the body position with previous part
+            let currentDir = bodyOrientation[i]
+            let prevDir = bodyOrientation[i - 1]
+            let bodyImage
+            
+            // if iw was straight
+            if (currentDir === prevDir) {
+                if (currentDir === 'Up' || currentDir === 'Down') {
+                    bodyImage = bodyV
+                } else {
+                    bodyImage = bodyH
+                }
+            }
+
+            // if it was a corner
+            else {
+                if ((prevDir === 'Right' && currentDir === 'Up') || (prevDir === 'Down' && currentDir === 'Left')) {
+                    bodyImage = bodyBL
+                }
+                else if ((prevDir === 'Left' && currentDir === 'Up') || (prevDir === 'Down' && currentDir === 'Right')) {
+                    bodyImage = bodyBR
+                }
+                else if ((prevDir === 'Right' && currentDir === 'Down') || (prevDir === 'Up' && currentDir === 'Left')) {
+                    bodyImage = bodyTL
+                }
+                else if ((prevDir === 'Left' && currentDir === 'Down') || (prevDir === 'Up' && currentDir === 'Right')) {
+                    bodyImage = bodyTR
+                }
+            }
+            
+            // draw the body
+            gameSquares[pos] = bodyImage
+            divs[pos].style.backgroundImage = `url(${bodyImage})`
+            divs[pos].style.backgroundSize = 'contain'
+            divs[pos].style.backgroundRepeat = 'no-repeat'
+        }
+    }
 }
 
 function checkCollision() {
@@ -149,7 +271,7 @@ function checkCollision() {
     if (snakeBody.slice(1).includes(head)) gameOVER()
 
     if (head === obstacleLocation){
-        //hit a rock
+        // hitting a rock
         health--
         healthEle.textContent=("Health: " + ("❤️".repeat(health)))
         thereisobstacle = false
@@ -175,14 +297,6 @@ function gameOVER(){
     // displays the button
     startButton.style.display = 'block'
     section.style.filter = 'blur(5px)'
-
-    // clears the board except the walls
-    for (let i = 0; i < gameSquares.length; i++) {
-        if (!wallArray.includes(i)) {
-            gameSquares[i] = ""
-            divs[i].textContent = ""
-        }
-    }
     
     // resets the variables
     snakeLength = 3
@@ -216,7 +330,9 @@ function isThereApple() {
         // place apple
         apple = true
         gameSquares[randomIndex] = appleEmoji
-        divs[randomIndex].textContent = appleEmoji
+        divs[randomIndex].style.backgroundImage = `url(${appleEmoji})`
+        divs[randomIndex].style.backgroundSize = 'contain'
+        divs[randomIndex].style.backgroundRepeat = 'no-repeat'
     }
 }
 
@@ -241,7 +357,9 @@ function isThereObstacle(){
         // place obstacle
         thereisobstacle = true
         gameSquares[randomIndex] = obstacleEmoji
-        divs[randomIndex].textContent = obstacleEmoji
+        divs[randomIndex].style.backgroundImage = `url(${obstacleEmoji})`
+        divs[randomIndex].style.backgroundSize = 'contain'
+        divs[randomIndex].style.backgroundRepeat = 'no-repeat'
         obstacleLocation = randomIndex
     }
 
@@ -249,7 +367,7 @@ function isThereObstacle(){
         // remove the obstacle
         thereisobstacle = false
         gameSquares[obstacleLocation] = ""
-        divs[obstacleLocation].textContent = ""
+        divs[obstacleLocation].style.backgroundImage = ''
     }
 }
 
@@ -263,6 +381,15 @@ function startGame(){
     document.querySelector('#score').textContent = "Score: " +score
     health=3
     healthEle.textContent=("Health: " + ("❤️".repeat(health)))
+
+    // clears the board except the walls
+    for (let i = 0; i < gameSquares.length; i++) {
+        if (!wallArray.includes(i)) {
+            gameSquares[i] = ""
+            divs[i].textContent = ""
+            divs[i].style.backgroundImage = ""
+        }
+    }
 
     //start the game
     snakeSpawn()
