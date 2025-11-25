@@ -36,6 +36,7 @@ let grid = 0
 let wallArray = []
 let isHurt = false
 let heallocation = null
+let directionChanged = false
 
 
 createGrid()
@@ -192,6 +193,8 @@ function moveRight() { moveSnakeGeneric(1) }
 
 // moving logic
 function moveSnakeGeneric(movement) {
+    directionChanged = false
+
     let head = snakeBody[0]
     let newHead = head + movement
 
@@ -585,37 +588,47 @@ function startGame(){
 
 
 function buttonClicks(e){
+    if (directionChanged) return
+
     // saving the clickedkey
     const key = e.key.toLowerCase()
     
     if(radioEasyEle.checked){
         //checks what VALID button clicked
-        if (key === 'w' && snakeAimingDirection !== 'Down') {
+        if ((key === 'w' || key === 'arrowup') && snakeAimingDirection !== 'Down') {
             snakeAimingDirection = 'Up'
+            directionChanged = true
         }
-        else if (key === 's' && snakeAimingDirection !== 'Up') {
+        else if ((key === 's' || key === 'arrowdown') && snakeAimingDirection !== 'Up') {
             snakeAimingDirection = 'Down'
+            directionChanged = true
         }
-        else if (key === 'a' && snakeAimingDirection !== 'Right') {
+        else if ((key === 'a' || key === 'arrowleft') && snakeAimingDirection !== 'Right') {
             snakeAimingDirection = 'Left'
+            directionChanged = true
         }
-        else if (key === 'd' && snakeAimingDirection !== 'Left') {
+        else if ((key === 'd' || key === 'arrowright') && snakeAimingDirection !== 'Left') {
             snakeAimingDirection = 'Right'
+            directionChanged = true
         }
     }
     else{
         // flips
-        if (key === 'w' && snakeAimingDirection !== 'Up') {
+        if ((key === 'w' || key === 'arrowup') && snakeAimingDirection !== 'Up') {
             snakeAimingDirection = 'Down'
+            directionChanged = true
         }
-        else if (key === 's' && snakeAimingDirection !== 'Down') {
+        else if ((key === 's' || key === 'arrowdown') && snakeAimingDirection !== 'Down') {
             snakeAimingDirection = 'Up'
+            directionChanged = true
         }
-        else if (key === 'a' && snakeAimingDirection !== 'Left') {
+        else if ((key === 'a' || key === 'arrowleft') && snakeAimingDirection !== 'Left') {
             snakeAimingDirection = 'Right'
+            directionChanged = true
         }
-        else if (key === 'd' && snakeAimingDirection !== 'Right') {
+        else if ((key === 'd' || key === 'arrowright') && snakeAimingDirection !== 'Right') {
             snakeAimingDirection = 'Left'
+            directionChanged = true
         }
     }
 }
