@@ -14,6 +14,7 @@ const radioInsaneEle = document.querySelector('#difficulty-insane')
 const radioContainer = document.querySelectorAll('.radioLabel')
 
 /*--------------------------------- Variables --------------------------------*/
+section.style.gridTemplateColumns = `repeat(${easyGridSize.toString()}, 1fr)`
 
 // if reload happens
 highScoreEle.textContent = "Easy High Score: " + localStorage.getItem('Easyhighscore')
@@ -33,6 +34,8 @@ let bodyOrientation = []
 let highScore = 0
 let grid = 0
 let wallArray = []
+let isHurt = false
+let heallocation = null
 
 
 createGrid()
@@ -68,6 +71,10 @@ const appleEmoji = './assets/apple/apple.png'
 
 // obstacles
 const obstacleEmoji = "./assets/obstacle/blade.png"
+
+// Heal
+const healEmoji = "./assets/heal/Heal.png"
+
 
 /*-------------------------------- Functions --------------------------------*/
 function createGrid(){
@@ -150,7 +157,7 @@ function snakeSpawn() {
 }
 
 // function to set the game speed
-// gradually increasing the speed depending on the score 
+// increasing the speed depending on the score 
 function startSnakeMovement() {
     if(radioEasyEle.checked){
         if (score<10) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 125)}
@@ -188,7 +195,10 @@ function moveSnakeGeneric(movement) {
     let head = snakeBody[0]
     let newHead = head + movement
 
-    //checks if its a wall
+    // Check collision with body
+    if (snakeBody.includes(newHead)) return gameOVER()
+    
+    // checks if its a wall
     if (wallArray.includes(newHead)) return gameOVER()
 
     // checks if snake head on the apple and setting it to true
@@ -223,6 +233,7 @@ function moveSnakeGeneric(movement) {
     checkCollision()
     isThereApple()
     isThereObstacle()
+    heal()
 }
 
 function updateBodySegments() {
@@ -303,13 +314,11 @@ function checkCollision() {
 
     // if with obstacle in easy mode
     if (radioEasyEle.checked){
-        if (head === obstacleLocation){
+        if (obstacleLocation.includes(head)){
             health--
+            isHurt = true
             healthEle.textContent=("Health: " + ("❤️".repeat(health)))
-            thereisobstacle = false
-            if (health===0){
-                gameOVER()
-            } 
+            if (health===0) gameOVER()
         }
     }
     // if with obstacle in insane mode
@@ -357,9 +366,17 @@ function checkCollision() {
                 }
             }
         }
-        startSnakeMovement()
-        document.querySelector('#score').textContent = "Score: " + score
-        }
+    }
+    // collision with Heal
+    if (head === heallocation){
+        health++
+        healthEle.textContent=("Health: " + ("❤️".repeat(health)))
+        thereisheal = false
+        heallocation = null
+    }
+    startSnakeMovement()
+    document.querySelector('#score').textContent = "Score: " + score
+    
     }
 
 function gameOVER(){
@@ -412,8 +429,71 @@ function isThereApple() {
 }
 
 function isThereObstacle(){
-    // at a random time spawn an obstacle
-    if((!thereisobstacle && Math.random() < 0.4 && radioEasyEle.checked)||(radioInsaneEle.checked && Math.random() < 0.15)){
+    // easy mode 
+    if(radioEasyEle.checked){
+        // at a random time spawn an obstacle
+        if (Math.random() < 0.4 && obstacleLocation.length < 5){
+            // finds all empty spots
+            let emptySpots = []
+            for (let i = 0; i < gameSquares.length; i++) {
+                if (gameSquares[i] === "" && !wallArray.includes(i)){
+                    emptySpots.push(i)
+                }
+            }
+
+            // if there are no empty spots do nothing
+            if (emptySpots.length === 0) return
+
+            // picks a random spot where it is empty
+            let randomIndex = emptySpots[Math.floor(Math.random() * emptySpots.length)]
+            obstacleLocation.push(randomIndex)
+
+            // place obstacle
+            gameSquares[randomIndex] = obstacleEmoji
+            divs[randomIndex].style.backgroundImage = `url(${obstacleEmoji})`
+            divs[randomIndex].style.backgroundSize = 'contain'
+            divs[randomIndex].style.backgroundRepeat = 'no-repeat'
+        }
+
+        // removes the oldest at random time
+        if (obstacleLocation.length > 0 && Math.random() < 0.008){
+            let removeIndex = obstacleLocation.shift()
+            gameSquares[removeIndex] = ""
+            divs[removeIndex].style.backgroundImage = ''
+        }
+    }
+
+    // insane mode 
+    else if (radioInsaneEle.checked){
+        // at a random time spawn an obstacle
+        if(Math.random() < 0.15){
+            // finds all empty spots
+            let emptySpots = []
+            for (let i = 0; i < gameSquares.length; i++) {
+                if (gameSquares[i] === "" && !wallArray.includes(i)){
+                    emptySpots.push(i)
+                }
+            }
+
+            // if there are no empty spots do nothing
+            if (emptySpots.length === 0) return
+
+            // picks a random spot where it is empty
+            let randomIndex = emptySpots[Math.floor(Math.random() * emptySpots.length)]
+            obstacleLocation.push(randomIndex)
+
+            // place obstacle
+            gameSquares[randomIndex] = obstacleEmoji
+            divs[randomIndex].style.backgroundImage = `url(${obstacleEmoji})`
+            divs[randomIndex].style.backgroundSize = 'contain'
+            divs[randomIndex].style.backgroundRepeat = 'no-repeat'
+        }
+    }
+}
+
+
+function heal(){
+    if(isHurt && Math.random() < 0.02){
         // finds all empty spots
         let emptySpots = []
         for (let i = 0; i < gameSquares.length; i++) {
@@ -421,33 +501,20 @@ function isThereObstacle(){
                 emptySpots.push(i)
             }
         }
-        
         // if there are no empty spots do nothing
         if (emptySpots.length === 0) return
 
         // picks a random spot where it is empty
         let randomIndex = emptySpots[Math.floor(Math.random() * emptySpots.length)]
-        
-        // place obstacle
-        thereisobstacle = true
-        gameSquares[randomIndex] = obstacleEmoji
-        divs[randomIndex].style.backgroundImage = `url(${obstacleEmoji})`
+
+        // place heal
+        thereisheal = true
+        isHurt = false
+        gameSquares[randomIndex] = healEmoji
+        divs[randomIndex].style.backgroundImage = `url(${healEmoji})`
         divs[randomIndex].style.backgroundSize = 'contain'
         divs[randomIndex].style.backgroundRepeat = 'no-repeat'
-        if (radioInsaneEle.checked){
-        obstacleLocation.push(randomIndex)
-        }
-        else{
-        obstacleLocation = randomIndex
-    }
-    }
-    if (radioEasyEle.checked){
-        if(thereisobstacle && Math.random() < 0.008){
-            // remove the obstacle
-            thereisobstacle = false
-            gameSquares[obstacleLocation] = ""
-            divs[obstacleLocation].style.backgroundImage = ''
-        }
+        heallocation = randomIndex
     }
 }
 
@@ -472,13 +539,13 @@ function startGame(){
     gameSquares = new Array(grid * grid).fill('')
     wallArray = []
     fillWalls()
-    section.style.gridTemplateColumns = 'repeat(40, 1fr)'
+    section.style.gridTemplateColumns = `repeat(${easyGridSize.toString()}, 1fr)`
     section.style.width = "800px"
     section.style.height = "800px"
     health=3
     healthEle.textContent=("Health: " + ("❤️".repeat(health)))
     thereisobstacle = false
-    obstacleLocation = 0
+    obstacleLocation = []
     }
 
     // if insane
@@ -490,7 +557,7 @@ function startGame(){
     gameSquares = new Array(grid * grid).fill('')
     wallArray = []
     fillWalls()
-    section.style.gridTemplateColumns = 'repeat(20, 1fr)'
+    section.style.gridTemplateColumns = `repeat(${insaneGridSize.toString()}, 1fr)`
     section.style.width = "400px"
     section.style.height = "400px"
     health=1
