@@ -35,7 +35,7 @@ let highScore = 0
 let grid = 0
 let wallArray = []
 let isHurt = false
-let heallocation = null
+let healLocations = []
 let directionChanged = false
 
 
@@ -371,11 +371,12 @@ function checkCollision() {
         }
     }
     // collision with Heal
-    if (head === heallocation){
+    if (healLocations.includes(head)){
         health++
         healthEle.textContent=("Health: " + ("❤️".repeat(health)))
         thereisheal = false
-        heallocation = null
+        let healIndex = healLocations.indexOf(head)
+        healLocations.splice(healIndex, 1)
     }
     startSnakeMovement()
     document.querySelector('#score').textContent = "Score: " + score
@@ -509,7 +510,7 @@ function heal(){
 
         // picks a random spot where it is empty
         let randomIndex = emptySpots[Math.floor(Math.random() * emptySpots.length)]
-
+        
         // place heal
         thereisheal = true
         isHurt = false
@@ -517,7 +518,7 @@ function heal(){
         divs[randomIndex].style.backgroundImage = `url(${healEmoji})`
         divs[randomIndex].style.backgroundSize = 'contain'
         divs[randomIndex].style.backgroundRepeat = 'no-repeat'
-        heallocation = randomIndex
+        healLocations.push(randomIndex)
     }
 }
 
