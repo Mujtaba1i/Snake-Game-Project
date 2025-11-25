@@ -16,7 +16,7 @@ const radioContainer = document.querySelectorAll('.radioLabel')
 /*--------------------------------- Variables --------------------------------*/
 
 // if reload happens
-highScoreEle.textContent = "High Score: " + localStorage.getItem('highScore')
+highScoreEle.textContent = "Easy High Score: " + localStorage.getItem('Easyhighscore')
 
 // defualt Variables
 let snakeLength = 3
@@ -152,10 +152,18 @@ function snakeSpawn() {
 // function to set the game speed
 // gradually increasing the speed depending on the score 
 function startSnakeMovement() {
-    if (score<10) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 125)}
-    else if (score<20) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 100)}
-    else if (score<30) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 75)}
-    else if (score<40) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 50)}
+    if(radioEasyEle.checked){
+        if (score<10) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 125)}
+        else if (score<20) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 100)}
+        else if (score<30) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 75)}
+        else if (score<40) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 50)}
+    }
+    else{
+        if (score<5) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 75)}
+        else if (score<10) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 60)}
+        else if (score<15) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 30)}
+        else if (score<20) {clearInterval(gameInterval); gameInterval = setInterval(moveSnake, 10)}
+    }
 }
 
 
@@ -317,24 +325,42 @@ function checkCollision() {
         apple = false
         snakeLength++
         score++
-        if (score > highScore) {
-            if (localStorage.getItem('highScore') === null) {
-                highScore = score
-                highScoreEle.textContent = "High Score: " + highScore
-                // saves it to local storage
-                localStorage.setItem('highScore', highScore)
+
+        // EASY MODE high score
+        if (radioEasyEle.checked) {
+            if (score > highScore) {
+                if (localStorage.getItem('Easyhighscore') === null) {
+                    highScore = score
+                    highScoreEle.textContent = "Easy High Score: " + highScore
+                    localStorage.setItem('Easyhighscore', highScore)
+                }
+                else if (score > localStorage.getItem('Easyhighscore')) {
+                    highScore = score
+                    highScoreEle.textContent = "Easy High Score: " + highScore
+                    localStorage.setItem('Easyhighscore', highScore)
+                }
             }
-            else if (score > localStorage.getItem('highScore')) {
-                highScore = score
-                highScoreEle.textContent = "High Score: " + highScore
-                // saves it to local storage
-                localStorage.setItem('highScore', highScore)
+        }
+
+        // INSANE MODE high score
+        if (radioInsaneEle.checked) {
+            if (score > highScore) {
+                if (localStorage.getItem('Insanehighscore') === null) {
+                    highScore = score
+                    highScoreEle.textContent = "Insane High Score: " + highScore
+                    localStorage.setItem('Insanehighscore', highScore)
+                }
+                else if (score > localStorage.getItem('Insanehighscore')) {
+                    highScore = score
+                    highScoreEle.textContent = "Insane High Score: " + highScore
+                    localStorage.setItem('Insanehighscore', highScore)
+                }
             }
+        }
         startSnakeMovement()
         document.querySelector('#score').textContent = "Score: " + score
         }
     }
-}
 
 function gameOVER(){
     // clear Interval 
@@ -387,7 +413,7 @@ function isThereApple() {
 
 function isThereObstacle(){
     // at a random time spawn an obstacle
-    if((!thereisobstacle && Math.random() < 0.4 && radioEasyEle.checked)||(radioInsaneEle.checked && Math.random() < 0.25)){
+    if((!thereisobstacle && Math.random() < 0.4 && radioEasyEle.checked)||(radioInsaneEle.checked && Math.random() < 0.15)){
         // finds all empty spots
         let emptySpots = []
         for (let i = 0; i < gameSquares.length; i++) {
@@ -439,6 +465,7 @@ function startGame(){
 
     // if easy
     if (radioEasyEle.checked){
+    highScoreEle.textContent = "Easy High Score: " + localStorage.getItem('Easyhighscore')
     section.innerHTML = ""
     createGrid()
     divs = section.querySelectorAll('div')
@@ -450,9 +477,13 @@ function startGame(){
     section.style.height = "800px"
     health=3
     healthEle.textContent=("Health: " + ("❤️".repeat(health)))
+    thereisobstacle = false
+    obstacleLocation = 0
     }
+
     // if insane
     else{
+    highScoreEle.textContent = "Insane High Score: " + localStorage.getItem('Insanehighscore')
     section.innerHTML = ""
     createGrid()
     divs = section.querySelectorAll('div')
@@ -460,10 +491,12 @@ function startGame(){
     wallArray = []
     fillWalls()
     section.style.gridTemplateColumns = 'repeat(20, 1fr)'
-    section.style.width = "200px"
-    section.style.height = "200px"
+    section.style.width = "400px"
+    section.style.height = "400px"
     health=1
     healthEle.textContent=("Health: " + ("❤️".repeat(health)))
+    thereisobstacle = false
+    obstacleLocation = []
     }
 
     // clears the board except the walls
@@ -488,18 +521,35 @@ function buttonClicks(e){
     // saving the clickedkey
     const key = e.key.toLowerCase()
     
-    //checks what VALID button clicked
-    if (key === 'w' && snakeAimingDirection !== 'Down') {
-        snakeAimingDirection = 'Up'
+    if(radioEasyEle.checked){
+        //checks what VALID button clicked
+        if (key === 'w' && snakeAimingDirection !== 'Down') {
+            snakeAimingDirection = 'Up'
+        }
+        else if (key === 's' && snakeAimingDirection !== 'Up') {
+            snakeAimingDirection = 'Down'
+        }
+        else if (key === 'a' && snakeAimingDirection !== 'Right') {
+            snakeAimingDirection = 'Left'
+        }
+        else if (key === 'd' && snakeAimingDirection !== 'Left') {
+            snakeAimingDirection = 'Right'
+        }
     }
-    else if (key === 's' && snakeAimingDirection !== 'Up') {
-        snakeAimingDirection = 'Down'
-    }
-    else if (key === 'a' && snakeAimingDirection !== 'Right') {
-        snakeAimingDirection = 'Left'
-    }
-    else if (key === 'd' && snakeAimingDirection !== 'Left') {
-        snakeAimingDirection = 'Right'
+    else{
+        // flips
+        if (key === 'w' && snakeAimingDirection !== 'Up') {
+            snakeAimingDirection = 'Down'
+        }
+        else if (key === 's' && snakeAimingDirection !== 'Down') {
+            snakeAimingDirection = 'Up'
+        }
+        else if (key === 'a' && snakeAimingDirection !== 'Left') {
+            snakeAimingDirection = 'Right'
+        }
+        else if (key === 'd' && snakeAimingDirection !== 'Right') {
+            snakeAimingDirection = 'Left'
+        }
     }
 }
 
