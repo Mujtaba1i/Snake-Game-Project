@@ -41,6 +41,7 @@ let isInvicible = false
 let invincibilityTimer = null
 let powerupLocations = null
 let thereIsSuper=false
+let gameRunning = false
 
 createGrid()
 // filling
@@ -205,6 +206,7 @@ function moveRight() { moveSnakeGeneric(1) }
 
 // moving logic
 function moveSnakeGeneric(movement) {
+    if (!gameRunning) return 
     directionChanged = false
 
     let head = snakeBody[0]
@@ -430,6 +432,7 @@ function checkCollision() {
     }
 
 function gameOVER(){
+    gameRunning = false
     loseSound.play()
     // clear Interval 
     if (gameInterval) clearInterval(gameInterval)
@@ -601,6 +604,7 @@ function superPower(){
 }
 
 function startGame(){
+    gameRunning = true
     // showing the button
     startButton.style.display = 'none'
     for (let buttonEl of radioContainer){
