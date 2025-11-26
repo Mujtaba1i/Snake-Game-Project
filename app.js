@@ -37,7 +37,10 @@ let wallArray = []
 let isHurt = false
 let healLocations = []
 let directionChanged = false
-
+let isInvicible = false
+let invincibilityTimer = null
+let powerupLocations = null
+let thereIsSuper=false
 
 createGrid()
 // filling
@@ -81,6 +84,9 @@ const healSound = new Audio("./assets/heal/heal.mp3")
 
 // Lose
 const loseSound = new Audio("./assets/endscreen.mp3")
+
+// powerup
+const powerupEmoji = "./assets/powerup/ghost.png"
 
 
 /*-------------------------------- Functions --------------------------------*/
@@ -205,7 +211,7 @@ function moveSnakeGeneric(movement) {
     let newHead = head + movement
 
     // Check collision with body
-    if (snakeBody.includes(newHead)) return gameOVER()
+    if (snakeBody.includes(newHead) && !isInvicible) return gameOVER()
     
     // checks if its a wall
     if (wallArray.includes(newHead)) return gameOVER()
@@ -230,12 +236,18 @@ function moveSnakeGeneric(movement) {
     divs[newHead].style.backgroundSize = 'contain'
     divs[newHead].style.backgroundRepeat = 'no-repeat'
 
+    // NEW: Apply ghost effect to new head if invincible
+    if (isInvicible) {
+        divs[newHead].style.opacity = '0.6'
+    }
+
     // remove the last tail
     if (!ateApple) {
         let oldTail = snakeBody.pop()
         bodyOrientation.pop()
         gameSquares[oldTail] = ""
         divs[oldTail].style.backgroundImage = ''
+        divs[oldTail].style.opacity = '1'
     }
 
     updateBodySegments()
@@ -243,6 +255,7 @@ function moveSnakeGeneric(movement) {
     isThereApple()
     isThereObstacle()
     heal()
+    superPower()
 }
 
 function updateBodySegments() {
@@ -271,7 +284,13 @@ function updateBodySegments() {
             divs[pos].style.backgroundImage = `url(${tailImage})`
             divs[pos].style.backgroundSize = 'contain'
             divs[pos].style.backgroundRepeat = 'no-repeat'
+
+            // NEW: Apply ghost effect if invincible
+            if (isInvicible) {
+                divs[pos].style.opacity = '0.6'
+            }
         }
+
 
         // body
         else {
@@ -311,6 +330,11 @@ function updateBodySegments() {
             divs[pos].style.backgroundImage = `url(${bodyImage})`
             divs[pos].style.backgroundSize = 'contain'
             divs[pos].style.backgroundRepeat = 'no-repeat'
+
+            // NEW: Apply ghost effect if invincible
+            if (isInvicible) {
+                divs[pos].style.opacity = '0.6'
+            }
         }
     }
 }
@@ -318,17 +342,30 @@ function updateBodySegments() {
 function checkCollision() {
     let head = snakeBody[0]
 
-    // if with body part
-    if (snakeBody.slice(1).includes(head)) gameOVER()
+    // collision with powerup - CHECK THIS FIRST
+    if (powerupLocations === head){
+        powerupLocations = null
+        isInvicible = true
+        thereIsSuper = false
+        // NEW: Removed the forEach loop - opacity is now applied in moveSnakeGeneric and updateBodySegments
+        invincibilityTimer = setTimeout(() => {
+            isInvicible = false
+            // NEW: Reset opacity for all body parts when invincibility ends
+            snakeBody.forEach(pos => {divs[pos].style.opacity = '1'})
+        }, 3000)
+    }
+
 
     // if with obstacle in easy mode
     if (radioEasyEle.checked){
         if (obstacleLocation.includes(head)){
-            health--
-            hurtSound.play()
-            isHurt = true
-            healthEle.textContent=("Health: " + ("❤️".repeat(health)))
-            if (health===0) gameOVER()
+            if(!isInvicible){
+                health--
+                hurtSound.play()
+                isHurt = true
+                healthEle.textContent=("Health: " + ("❤️".repeat(health)))
+                if (health===0) gameOVER()
+            }
         }
     }
     // if with obstacle in insane mode
@@ -345,7 +382,7 @@ function checkCollision() {
         snakeLength++
         score++ 
         eatingSound.play()
-        
+
         // EASY MODE high score
         if (radioEasyEle.checked) {
             if (score > highScore) {
@@ -370,7 +407,7 @@ function checkCollision() {
                     highScoreEle.textContent = "Insane High Score: " + highScore
                     localStorage.setItem('Insanehighscore', highScore)
                 }
-                else if (score > localStorage.getItem('Insanehighscore')) {
+                else if (score > parseInt(localStorage.getItem('Insanehighscore'))) {
                     highScore = score
                     highScoreEle.textContent = "Insane High Score: " + highScore
                     localStorage.setItem('Insanehighscore', highScore)
@@ -387,6 +424,7 @@ function checkCollision() {
         let healIndex = healLocations.indexOf(head)
         healLocations.splice(healIndex, 1)
     }
+
     startSnakeMovement()
     document.querySelector('#score').textContent = "Score: " + score
     
@@ -396,6 +434,9 @@ function gameOVER(){
     loseSound.play()
     // clear Interval 
     if (gameInterval) clearInterval(gameInterval)
+
+    // NEW: Clear invincibility timer if active
+    if (invincibilityTimer) clearTimeout(invincibilityTimer)
     
     // displays the button
     startButton.style.display = 'block'
@@ -411,6 +452,9 @@ function gameOVER(){
     snakeBody = []
     ateApple = false
     thereisobstacle = false
+    isInvicible = false  // NEW: Reset invincibility
+    powerupLocations = null  // NEW: Reset powerup location
+    thereIsSuper = false  // NEW: Reset powerup flag
 
     // change text to Restart
     startButton.textContent = 'Restart'
@@ -529,6 +573,31 @@ function heal(){
         divs[randomIndex].style.backgroundSize = 'contain'
         divs[randomIndex].style.backgroundRepeat = 'no-repeat'
         healLocations.push(randomIndex)
+    }
+}
+
+function superPower(){
+    if ((score >= 5 && Math.random() < 0.005) && thereIsSuper === false){
+        // finds all empty spots
+        let emptySpots = []
+        for (let i = 0; i < gameSquares.length; i++) {
+            if (gameSquares[i] === "" && !wallArray.includes(i)){
+                emptySpots.push(i)
+            }
+        }
+        // if there are no empty spots do nothing
+        if (emptySpots.length === 0) return
+
+        // picks a random spot where it is empty
+        let randomIndex = emptySpots[Math.floor(Math.random() * emptySpots.length)]
+        
+        // place powerup
+        gameSquares[randomIndex] = powerupEmoji
+        divs[randomIndex].style.backgroundImage = `url(${powerupEmoji})`
+        divs[randomIndex].style.backgroundSize = 'contain'
+        divs[randomIndex].style.backgroundRepeat = 'no-repeat'
+        powerupLocations = randomIndex
+        thereIsSuper = true
     }
 }
 

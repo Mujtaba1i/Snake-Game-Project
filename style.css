@@ -79,3 +79,21 @@ body {
         -1px 1px 0 #1d1d1d,
         1px 1px 0 #1d1d1d;
 }
+
+.snake-block {
+    position: relative;
+    /* NEW */
+}
+
+.snake-img {
+    position: absolute;
+    /* NEW */
+    width: 100%;
+    /* NEW */
+    height: 100%;
+    /* NEW */
+    opacity: 1;
+    /* NEW */
+    pointer-events: none;
+    /* NEW */
+}
