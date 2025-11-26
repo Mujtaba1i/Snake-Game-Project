@@ -236,7 +236,7 @@ function moveSnakeGeneric(movement) {
     divs[newHead].style.backgroundSize = 'contain'
     divs[newHead].style.backgroundRepeat = 'no-repeat'
 
-    // NEW: Apply ghost effect to new head if invincible
+    // ghost effect
     if (isInvicible) {
         divs[newHead].style.opacity = '0.6'
     }
@@ -285,7 +285,7 @@ function updateBodySegments() {
             divs[pos].style.backgroundSize = 'contain'
             divs[pos].style.backgroundRepeat = 'no-repeat'
 
-            // NEW: Apply ghost effect if invincible
+            // ghost effect
             if (isInvicible) {
                 divs[pos].style.opacity = '0.6'
             }
@@ -331,7 +331,7 @@ function updateBodySegments() {
             divs[pos].style.backgroundSize = 'contain'
             divs[pos].style.backgroundRepeat = 'no-repeat'
 
-            // NEW: Apply ghost effect if invincible
+            // ghost effect
             if (isInvicible) {
                 divs[pos].style.opacity = '0.6'
             }
@@ -347,10 +347,9 @@ function checkCollision() {
         powerupLocations = null
         isInvicible = true
         thereIsSuper = false
-        // NEW: Removed the forEach loop - opacity is now applied in moveSnakeGeneric and updateBodySegments
         invincibilityTimer = setTimeout(() => {
             isInvicible = false
-            // NEW: Reset opacity for all body parts when invincibility ends
+            // Reset opacity
             snakeBody.forEach(pos => {divs[pos].style.opacity = '1'})
         }, 3000)
     }
@@ -435,7 +434,7 @@ function gameOVER(){
     // clear Interval 
     if (gameInterval) clearInterval(gameInterval)
 
-    // NEW: Clear invincibility timer if active
+    // clear invinc timer
     if (invincibilityTimer) clearTimeout(invincibilityTimer)
     
     // displays the button
@@ -452,9 +451,9 @@ function gameOVER(){
     snakeBody = []
     ateApple = false
     thereisobstacle = false
-    isInvicible = false  // NEW: Reset invincibility
-    powerupLocations = null  // NEW: Reset powerup location
-    thereIsSuper = false  // NEW: Reset powerup flag
+    isInvicible = false  
+    powerupLocations = null  
+    thereIsSuper = false 
 
     // change text to Restart
     startButton.textContent = 'Restart'

@@ -97,3 +97,20 @@ body {
     pointer-events: none;
     /* NEW */
 }
+
+/* Add this to your main CSS file */
+.grid-cell {
+    position: relative;
+    /* To contain the absolute image if you use absolute positioning */
+    /* ... other grid cell styles ... */
+}
+
+.snake-part-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* Ensures the image scales down without being cut off */
+    display: none;
+    /* Initially hide all snake image elements */
+    /* NEW: Setting image to block and then controlling its visibility via JS */
+}
