@@ -14,9 +14,9 @@ const radioInsaneEle = document.querySelector('#difficulty-insane')
 const radioContainer = document.querySelectorAll('.radioLabel')
 
 /*--------------------------------- Variables --------------------------------*/
-section.style.gridTemplateColumns = `repeat(${easyGridSize.toString()}, 1fr)`
 
 // if reload happens
+section.style.gridTemplateColumns = `repeat(${easyGridSize.toString()}, 1fr)`
 highScoreEle.textContent = "Easy High Score: " + localStorage.getItem('Easyhighscore')
 
 // defualt Variables
@@ -69,12 +69,18 @@ const snakeTailRight = './assets/tail/right.png'
 
 // apple
 const appleEmoji = './assets/apple/apple.png'
+const eatingSound = new Audio("./assets/apple/eating.mp3")
 
 // obstacles
 const obstacleEmoji = "./assets/obstacle/blade.png"
+const hurtSound = new Audio("./assets/obstacle/Hurt.mp3")
 
 // Heal
 const healEmoji = "./assets/heal/Heal.png"
+const healSound = new Audio("./assets/heal/heal.mp3")
+
+// Lose
+const loseSound = new Audio("./assets/endscreen.mp3")
 
 
 /*-------------------------------- Functions --------------------------------*/
@@ -319,6 +325,7 @@ function checkCollision() {
     if (radioEasyEle.checked){
         if (obstacleLocation.includes(head)){
             health--
+            hurtSound.play()
             isHurt = true
             healthEle.textContent=("Health: " + ("❤️".repeat(health)))
             if (health===0) gameOVER()
@@ -336,8 +343,9 @@ function checkCollision() {
     if (ateApple) {
         apple = false
         snakeLength++
-        score++
-
+        score++ 
+        eatingSound.play()
+        
         // EASY MODE high score
         if (radioEasyEle.checked) {
             if (score > highScore) {
@@ -373,6 +381,7 @@ function checkCollision() {
     // collision with Heal
     if (healLocations.includes(head)){
         health++
+        healSound.play()
         healthEle.textContent=("Health: " + ("❤️".repeat(health)))
         thereisheal = false
         let healIndex = healLocations.indexOf(head)
@@ -384,6 +393,7 @@ function checkCollision() {
     }
 
 function gameOVER(){
+    loseSound.play()
     // clear Interval 
     if (gameInterval) clearInterval(gameInterval)
     
