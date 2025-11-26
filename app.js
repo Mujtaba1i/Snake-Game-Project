@@ -351,7 +351,7 @@ function checkCollision() {
             isInvicible = false
             // Reset opacity
             snakeBody.forEach(pos => {divs[pos].style.opacity = '1'})
-        }, 3000)
+        }, 5000)
     }
 
 
