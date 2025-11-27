@@ -239,9 +239,9 @@ function moveSnakeGeneric(movement) {
     divs[newHead].style.backgroundRepeat = 'no-repeat'
 
     // ghost effect
-    if (isInvicible) {
-        divs[newHead].style.opacity = '0.6'
-    }
+    // if (isInvicible) {
+    //     divs[newHead].style.opacity = '0.6'
+    // }
 
     // remove the last tail
     if (!ateApple) {
@@ -288,9 +288,9 @@ function updateBodySegments() {
             divs[pos].style.backgroundRepeat = 'no-repeat'
 
             // ghost effect
-            if (isInvicible) {
-                divs[pos].style.opacity = '0.6'
-            }
+            // if (isInvicible) {
+            //     divs[pos].style.opacity = '0.6'
+            // }
         }
 
 
@@ -334,9 +334,9 @@ function updateBodySegments() {
             divs[pos].style.backgroundRepeat = 'no-repeat'
 
             // ghost effect
-            if (isInvicible) {
-                divs[pos].style.opacity = '0.6'
-            }
+            // if (isInvicible) {
+            //     divs[pos].style.opacity = '0.6'
+            // }
         }
     }
 }
@@ -349,8 +349,12 @@ function checkCollision() {
         powerupLocations = null
         isInvicible = true
         thereIsSuper = false
+        //NEW
+        section.style.opacity = '0.6'
         invincibilityTimer = setTimeout(() => {
             isInvicible = false
+            //NEW
+            section.style.opacity = '1'
             // Reset opacity
             snakeBody.forEach(pos => {divs[pos].style.opacity = '1'})
         }, 5000)
@@ -579,7 +583,7 @@ function heal(){
 }
 
 function superPower(){
-    if ((score >= 5 && Math.random() < 0.005) && thereIsSuper === false){
+    if ((score >= 1 && Math.random() < 1) && thereIsSuper === false){
         // finds all empty spots
         let emptySpots = []
         for (let i = 0; i < gameSquares.length; i++) {
@@ -605,6 +609,9 @@ function superPower(){
 
 function startGame(){
     gameRunning = true
+    section.style.opacity = '1'
+    // Reset opacity
+    snakeBody.forEach(pos => {divs[pos].style.opacity = '1'})
     // showing the button
     startButton.style.display = 'none'
     for (let buttonEl of radioContainer){
