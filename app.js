@@ -583,7 +583,7 @@ function heal(){
 }
 
 function superPower(){
-    if ((score >= 5 && Math.random() < 0.005) && thereIsSuper === false){
+    if ((score >= 5 && Math.random() < 0.008) && thereIsSuper === false){
         // finds all empty spots
         let emptySpots = []
         for (let i = 0; i < gameSquares.length; i++) {
